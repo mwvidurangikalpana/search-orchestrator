@@ -72,12 +72,7 @@ func Find_IP_ID(tenantID string) string {
 	return IP_ID
 }
 
-/*
-func Get_AWS_Credentials(IP_ID string){
-
-}
-*/
-func getCredentialsForIdentityPool(identityPoolID string) (*cognitoidentity.Credentials, error) {
+func getCredentialsForIdentityPool(identityPoolID string, IDToken string) (*cognitoidentity.Credentials, error) {
 	sess, err := session.NewSession()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create session: %v", err)
