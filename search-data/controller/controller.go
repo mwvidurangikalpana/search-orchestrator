@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cognitoidentity"
@@ -144,6 +145,7 @@ func Find_OSInstance_URL(tenantID string) string {
 	return test_url
 }
 
+/*
 func Create_OSClient(url string, credentials *cognitoidentity.Credentials) *opensearch.Client {
 
 	cfg, err := config.LoadDefaultConfig(context.TODO())
@@ -165,6 +167,33 @@ func Create_OSClient(url string, credentials *cognitoidentity.Credentials) *open
 	if err != nil {
 		fmt.Printf("err: %s\n", err.Error())
 		//return
+	}
+	fmt.Println(client.Info())
+	return client
+}
+*/
+
+func Create_OSClient(url string, cre *cognitoidentity.Credentials) *opensearch.Client {
+
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("eu-west-2"),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider("AKID", "SECRET_KEY", "TOKEN")),
+	)
+
+	if err != nil {
+		log.Fatalf("failed to load configuration, %v", err)
+	}
+	fmt.Printf("cfg.Credentials: %v\n", cfg.Credentials)
+	signer, err := requestsigner.NewSigner(cfg)
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	client, err := opensearch.NewClient(opensearch.Config{
+		Addresses: []string{"https://search-odasara-test-domain-stosx4jruhkebwxwkvfsyjdln4.eu-west-2.es.amazonaws.com/"},
+		Signer:    signer,
+	})
+	if err != nil {
+		log.Printf("err: %s\n", err.Error())
 	}
 	fmt.Println(client.Info())
 	return client
@@ -231,11 +260,13 @@ type SearchRequest struct {
 	Query string `json:"query"`
 }
 
+/*
 func SearchDocument(w http.ResponseWriter, r *http.Request) {
 	var searchRequest SearchRequest
 
 	// Read the request body and unmarshal it into the searchRequest struct
 	json.NewDecoder(r.Body).Decode(&searchRequest)
+
 	// Marshal the searchRequest struct into json
 	//jsonValue, _ := json.Marshal(searchRequest)
 	// Get the target index from the URL
@@ -250,10 +281,7 @@ func SearchDocument(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	/*req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(jsonValue))
-	  if err != nil {
-	      panic(err)
-	  } */
+
 	req.Header.Set("Content-Type", "application/json")
 	// Create a new http client
 	client := &http.Client{}
@@ -266,4 +294,14 @@ func SearchDocument(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("response Status:", resp.Status)
 	// Print the response body
 	fmt.Println("response Body:", resp.Body)
+}
+*/
+
+func SearchDocument(w http.ResponseWriter, r *http.Request) {
+	//var searchRequest SearchRequest
+
+	// Get the index and _id from the URL
+	//url := r.URL.String()
+	//target_index := url[1:strings.Index(url, "/_search/")]
+
 }
