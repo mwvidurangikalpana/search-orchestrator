@@ -71,9 +71,17 @@ func ReadRequest(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(cred)
 		var cli *opensearch.Client = Create_OSClient("https://search-odasara-test-domain-stosx4jruhkebwxwkvfsyjdln4.eu-west-2.es.amazonaws.com", cred)
 		fmt.Println(cli)
-		addClient(cli, x_ID)
+		//addClient(cli, x_ID)
 
 	}
+	//get the client with relevant key
+	//copy the http request body to another request
+	/*originalBody, _ := ioutil.ReadAll(r.Body)
+	newReq, _ := http.NewRequest("POST", "https://example.com", bytes.NewBuffer(originalBody)) */
+	//AddDocument(w http.ResponseWriter, r *http.Request)
+	//select whether the request is a create or a search
+	//call adddocument() or searchdocument() with needed parameters extracted from the endpoints to send new request to OS instance
+	//forward the OS instance response
 
 }
 
@@ -87,18 +95,6 @@ func CheckCredentials(client_map map[string]*opensearch.Client, x_ID string) boo
 			break
 		}
 	}
-
-	/*
-		if count == 1 {
-			fmt.Println("Credentials not available")
-			//call function "find identity pool id" of tenant using tenantID
-			//call function "getCredentialsForIdentityPool" using Ip_ID
-			//call function "Find_OSInstance_URL" using tenantID
-			//call function "Create_OSClient" using OS_instance url and credentials
-			//call function "addClient" and add the new client to the global map using IDToken as the key
-			//call function "readMap" with IDToken and get the relevant os client
-		}
-	*/
 
 	return count == 2
 }
@@ -172,6 +168,7 @@ func Create_OSClient(url string, cre *cognitoidentity.Credentials) *opensearch.C
 		log.Printf("err: %s\n", err.Error())
 	}
 	fmt.Println("os client created!")
+	//OS_client_map[x_ID] = client
 	//fmt.Println(client.Info())
 	return client
 }
@@ -186,14 +183,12 @@ func addClient(cli *opensearch.Client, IDToken string) {
 
 }
 
-/*
-func readMap(IDToken string)*opensearch.Client{
+func readMap(IDToken string) *opensearch.Client {
 
-	func readMap(IDToken string) int {
-		cli := employee[IDToken]
-		return cli
-	}
-*/
+	cli := OS_client_map[IDToken]
+	return cli
+}
+
 type Document struct {
 	Title string `json:"title"`
 	Body  string `json:"body"`
