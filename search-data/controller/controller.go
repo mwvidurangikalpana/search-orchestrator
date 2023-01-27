@@ -173,6 +173,7 @@ func Create_OSClient(url string, cre *cognitoidentity.Credentials) *opensearch.C
 	return client
 }
 
+/*
 func addClient(cli *opensearch.Client, IDToken string) {
 
 	OS_client_map[IDToken] = cli
@@ -187,7 +188,7 @@ func readMap(IDToken string) *opensearch.Client {
 
 	cli := OS_client_map[IDToken]
 	return cli
-}
+}*/
 
 type Document struct {
 	Title string `json:"title"`
