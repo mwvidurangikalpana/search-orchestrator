@@ -29,6 +29,20 @@ var OS_client_map map[string]*opensearch.Client
 
 var client *opensearch.Client
 
+func Home(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/x-www-form-urlencode")
+	w.Header().Set("Allow-Control-Allow-Methods", "GET")
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func Health(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/x-www-form-urlencode")
+	w.Header().Set("Allow-Control-Allow-Methods", "GET")
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func ReadRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/x-www-form-urlencode")
 	w.Header().Set("Allow-Control-Allow-Methods", "GET")
@@ -57,6 +71,7 @@ func ReadRequest(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(cred)
 		var cli *opensearch.Client = Create_OSClient("https://search-odasara-test-domain-stosx4jruhkebwxwkvfsyjdln4.eu-west-2.es.amazonaws.com", cred)
 		fmt.Println(cli)
+		addClient(cli, x_ID)
 
 	}
 
@@ -127,61 +142,11 @@ func cognito_identiy_GetId(token string) *cognitoidentity.Credentials {
 	return getCredentialsForIdentityOutput.Credentials
 }
 
-/*
-func getCredentialsForIdentityPool(identityPoolID string, IDToken string) (*cognitoidentity.Credentials, error) {
-	sess, err := session.NewSession()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create session: %v", err)
-	}
-
-	svc := cognitoidentity.New(sess)
-
-	params := &cognitoidentity.GetCredentialsForIdentityInput{
-		IdentityId: aws.String(identityPoolID),
-	}
-
-	resp, err := svc.GetCredentialsForIdentity(params)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get credentials for identity pool %s: %v", identityPoolID, err)
-	}
-
-	return resp.Credentials, nil
-}
-*/
-
 func Find_OSInstance_URL(tenantID string) string {
 	fmt.Println("OS instance URL is:")
 	var test_url string = "https://search-odasara-test-domain-stosx4jruhkebwxwkvfsyjdln4.eu-west-2.es.amazonaws.com"
 	return test_url
 }
-
-/*
-func Create_OSClient(url string, credentials *cognitoidentity.Credentials) *opensearch.Client {
-
-	cfg, err := config.LoadDefaultConfig(context.TODO())
-	cfg.Region = "eu-west-2"
-	if err != nil {
-		log.Fatalf("failed to load configuration, %v", err)
-	}
-	fmt.Printf("cfg.Credentials: %v\n", cfg.Credentials)
-	signer, err := requestsigner.NewSigner(cfg)
-	if err != nil {
-		fmt.Println(err.Error())
-		//return
-	}
-
-	client, err = opensearch.NewClient(opensearch.Config{
-		Addresses: []string{url},
-		Signer:    signer,
-	})
-	if err != nil {
-		fmt.Printf("err: %s\n", err.Error())
-		//return
-	}
-	fmt.Println(client.Info())
-	return client
-}
-*/
 
 func Create_OSClient(url string, cre *cognitoidentity.Credentials) *opensearch.Client {
 
@@ -211,15 +176,18 @@ func Create_OSClient(url string, cre *cognitoidentity.Credentials) *opensearch.C
 	return client
 }
 
-/*
-// func addClient(cli *opensearch.Client, IDToken string){
+func addClient(cli *opensearch.Client, IDToken string) {
 
-	func addClient(cli int, IDToken string) {
-		employee[IDToken] = cli
+	OS_client_map[IDToken] = cli
+
+	for key, val := range OS_client_map {
+		fmt.Println("Header field %q, Value %q\n", key, &val)
+	}
 
 }
 
-// func readMap(IDToken string)*opensearch.Client{
+/*
+func readMap(IDToken string)*opensearch.Client{
 
 	func readMap(IDToken string) int {
 		cli := employee[IDToken]
