@@ -18,9 +18,9 @@ import (
 	requestsigner "github.com/opensearch-project/opensearch-go/v2/signer/awsv2"
 )
 
-var x_ID string
-var Authorization string
-var x_tenant string
+var x_ID string          //id-token
+var Authorization string //access-token
+var x_tenant string      //tenant-id
 
 var OS_client_map map[string]*opensearch.Client
 
@@ -38,7 +38,7 @@ func ReadRequest(w http.ResponseWriter, r *http.Request) {
 		if k == "X_id" {
 			ID := r.Header["X_id"]
 			x_ID = ID[0]
-			//fmt.Printf("x_ID is %q\n", x_ID)
+			fmt.Printf("x_ID is %q\n", x_ID)
 
 		} else if k == "Authorization" {
 			auth := r.Header["Authorization"]
@@ -52,6 +52,14 @@ func ReadRequest(w http.ResponseWriter, r *http.Request) {
 
 	var c bool = CheckCredentials(OS_client_map, x_ID)
 	fmt.Println(c)
+	if !c {
+		var cred *cognitoidentity.Credentials = cognito_identiy_GetId(x_ID)
+		fmt.Println(cred)
+		var cli *opensearch.Client = Create_OSClient("https://search-odasara-test-domain-stosx4jruhkebwxwkvfsyjdln4.eu-west-2.es.amazonaws.com", cred)
+		fmt.Println(cli)
+
+	}
+
 }
 
 func CheckCredentials(client_map map[string]*opensearch.Client, x_ID string) bool {
@@ -102,7 +110,7 @@ func cognito_identiy_GetId(token string) *cognitoidentity.Credentials {
 	if err != nil {
 		log.Println(err.Error())
 	} else {
-		//log.Println(*result.IdentityId)
+		log.Println(*result.IdentityId)
 	}
 	getCredentialsForIdentityInput := &cognitoidentity.GetCredentialsForIdentityInput{
 		IdentityId: result.IdentityId,
@@ -111,8 +119,10 @@ func cognito_identiy_GetId(token string) *cognitoidentity.Credentials {
 	getCredentialsForIdentityOutput, err := svc.GetCredentialsForIdentity(getCredentialsForIdentityInput)
 	if err != nil {
 		log.Println(err.Error())
+		fmt.Println("credentials not got successfully!")
 	} else {
 		log.Println(*getCredentialsForIdentityOutput)
+		fmt.Println("credentials got successfully!")
 	}
 	return getCredentialsForIdentityOutput.Credentials
 }
@@ -176,7 +186,8 @@ func Create_OSClient(url string, credentials *cognitoidentity.Credentials) *open
 func Create_OSClient(url string, cre *cognitoidentity.Credentials) *opensearch.Client {
 
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("eu-west-2"),
-		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider("AKID", "SECRET_KEY", "TOKEN")),
+		//config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider("AKID", "SECRET_KEY", "TOKEN")),
+		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(*cre.AccessKeyId, *cre.SecretKey, *cre.SessionToken)),
 	)
 
 	if err != nil {
@@ -195,7 +206,8 @@ func Create_OSClient(url string, cre *cognitoidentity.Credentials) *opensearch.C
 	if err != nil {
 		log.Printf("err: %s\n", err.Error())
 	}
-	fmt.Println(client.Info())
+	fmt.Println("os client created!")
+	//fmt.Println(client.Info())
 	return client
 }
 
